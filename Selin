@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Selin Akdeniz - Heart-Burst Terminal</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Exo+2:wght@300;600;900&display=swap');
+
+    :root {
+        --pink: #ff007a;
+        --purple: #bc13fe;
+        --bg-dark: #0a0510;
+    }
+
+    body {
+        margin: 0; background: var(--bg-dark); color: #fff;
+        font-family: 'Exo 2', sans-serif; overflow-x: hidden;
+        display: flex; flex-direction: column; align-items: center;
+        min-height: 100vh; padding: 40px 20px;
+    }
+
+    /* Arka Plan Yavaş Süzülen Kalpler */
+    .heart-bg {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: -1; pointer-events: none;
+    }
+
+    .bg-heart {
+        position: absolute; color: var(--pink); opacity: 0.3;
+        animation: slowFloat 15s linear infinite;
+    }
+
+    @keyframes slowFloat {
+        0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+        50% { opacity: 0.4; }
+        100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* Tıklayınca Fırlayan Kalpler */
+    .burst-heart {
+        position: fixed; pointer-events: none; z-index: 9999;
+        font-size: 24px; animation: heartBurst 0.8s ease-out forwards;
+    }
+
+    @keyframes heartBurst {
+        0% { transform: scale(0) translate(0, 0); opacity: 1; }
+        100% { transform: scale(1.5) translate(var(--tx), var(--ty)); opacity: 0; }
+    }
+
+    /* Ana Panel */
+    .main-panel {
+        width: 100%; max-width: 1200px;
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(20px);
+        border-radius: 30px; border: 1px solid rgba(188, 19, 254, 0.3);
+        padding: 40px; box-shadow: 0 0 40px rgba(188, 19, 254, 0.1);
+    }
+
+    .header { text-align: center; margin-bottom: 50px; }
+    h1 {
+        font-family: 'Orbitron', sans-serif; font-size: 3.5em; margin: 0;
+        background: linear-gradient(to right, var(--pink), var(--purple));
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 15px rgba(255, 0, 122, 0.4));
+    }
+
+    .stats {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: rgba(0, 0, 0, 0.4); border-radius: 20px; padding: 20px;
+        border: 1px solid var(--purple); text-align: center;
+        transition: 0.3s;
+    }
+
+    .stat-card .val { font-family: 'Orbitron'; color: var(--pink); font-size: 1.6em; display: block; }
+    .stat-card .lbl { font-size: 10px; color: #777; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* Görev Grid */
+    .grid { display: grid; grid-template-columns: 80px repeat(3, 1fr); gap: 15px; }
+
+    .card {
+        background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px; padding: 25px 15px; text-align: center;
+        cursor: pointer; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card:hover { transform: translateY(-5px); border-color: var(--pink); box-shadow: 0 5px 15px rgba(255, 0, 122, 0.2); }
+
+    .day { font-family: 'Orbitron'; color: var(--purple); font-weight: 900; display: flex; align-items: center; justify-content: center; }
+
+    /* Tamamlandı */
+    .done {
+        border-color: var(--pink) !important;
+        background: rgba(255, 0, 122, 0.1) !important;
+    }
+
+    .time { font-size: 11px; color: #fb7185; font-weight: bold; }
+    .name { font-size: 1.4em; font-weight: 800; display: block; margin: 5px 0; }
+    .task { font-size: 10px; color: #666; letter-spacing: 1px; }
+
+    .reset-btn {
+        margin-top: 40px; background: transparent; border: 1px solid var(--pink);
+        color: var(--pink); padding: 12px 40px; border-radius: 50px;
+        font-family: 'Orbitron'; cursor: pointer; transition: 0.3s;
+    }
+    .reset-btn:hover { background: var(--pink); color: #000; box-shadow: 0 0 20px var(--pink); }
+</style>
+</head>
+<body>
+
+<div class="heart-bg" id="bgHearts"></div>
+
+<div class="main-panel">
+    <div class="header">
+        <h1>SELİN AKDENİZ</h1>
+        <div style="color: var(--purple); letter-spacing: 5px; font-size: 11px; margin-top: 10px;">MISSION: BIOLOGIST APPOINTMENT // 2026</div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card"><span class="lbl">BAŞARI ORANI</span><span id="stat-p" class="val">0%</span></div>
+        <div class="stat-card"><span class="lbl">HEART XP</span><span id="stat-x" class="val">0</span></div>
+        <div class="stat-card"><span class="lbl">HEDEF</span><span class="val" style="font-size: 1.2em;">BİYOLOG</span></div>
+        <div class="stat-card"><span class="lbl">GÜNCEL</span><span class="val" style="color: var(--purple);">ACTIVE</span></div>
+    </div>
+
+    <div class="grid" id="gridContainer"></div>
+</div>
+
+<button class="reset-btn" onclick="resetAll()">SİSTEMİ SIFIRLA</button>
+
+<script>
+    const prog = [
+        { d: "PZT", s: [{h: "10:15", n: "TÜRKÇE", e: "DENEME + PARAGRAF"}, {h: "14:00", n: "MATEMATİK", e: "PROBLEM ODAĞI"}, {h: "17:30", n: "TARİH", e: "KONU + SORU"}]},
+        { d: "SAL", s: [{h: "10:15", n: "COĞRAFYA", e: "2X DENEME + PARAGRAF"}, {h: "14:00", n: "TARİH", e: "İNKILAP ODAĞI"}, {h: "17:30", n: "VATANDAŞLIK", e: "VİDEO + NOT"}]},
+        { d: "ÇAR", s: [{h: "10:15", n: "TÜRKÇE", e: "DENEME + PARAGRAF"}, {h: "14:00", n: "MATEMATİK", e: "KARMA TEST"}, {h: "17:30", n: "TARİH", e: "SORU TARAMA"}]},
+        { d: "PER", s: [{h: "10:15", n: "COĞRAFYA", e: "HARİTA + PARAGRAF"}, {h: "14:00", n: "TARİH", e: "KONU BİTİRME"}, {h: "17:30", n: "VATANDAŞLIK", e: "KAVRAM TEKRARI"}]},
+        { d: "CUM", s: [{h: "10:15", n: "TÜRKÇE", e: "DİL BİLGİSİ + PARAGRAF"}, {h: "14:00", n: "MATEMATİK", e: "ANALİZ BLOĞU"}, {h: "17:30", n: "COĞRAFYA", e: "GENEL TEKRAR"}]},
+        { d: "CMT", s: [{h: "10:15", n: "GENEL DENEME", e: "FULL SİMÜLASYON", w: true}, {h: "14:00", n: "ANALİZ", e: "HATA RAPORU"}]}
+    ];
+
+    function createBurst(e) {
+        for (let i = 0; i < 12; i++) {
+            const h = document.createElement('div');
+            h.className = 'burst-heart';
+            h.innerHTML = '❤';
+            h.style.left = e.clientX + 'px';
+            h.style.top = e.clientY + 'px';
+            h.style.color = Math.random() > 0.5 ? '#ff007a' : '#bc13fe';
+            
+            const tx = (Math.random() - 0.5) * 300;
+            const ty = (Math.random() - 0.5) * 300;
+            h.style.setProperty('--tx', `${tx}px`);
+            h.style.setProperty('--ty', `${ty}px`);
+            
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 800);
+        }
+    }
+
+    function render() {
+        const grid = document.getElementById('gridContainer');
+        grid.innerHTML = '';
+        let total = 0, done = 0;
+
+        prog.forEach((day, i) => {
+            const dDiv = document.createElement('div');
+            dDiv.className = 'card day';
+            dDiv.innerText = day.d;
+            grid.appendChild(dDiv);
+
+            day.s.forEach((slot, j) => {
+                total++;
+                const id = `task-${i}-${j}`;
+                const card = document.createElement('div');
+                card.className = 'card';
+                if(slot.w) card.style.gridColumn = "span 2";
+                if(localStorage.getItem(id)) { card.classList.add('done'); done++; }
+
+                card.innerHTML = `<span class="time">${slot.h}</span><span class="name">${slot.n}</span><span class="task">${slot.e}</span>`;
+                
+                card.onclick = (e) => {
+                    if(!localStorage.getItem(id)) {
+                        createBurst(e);
+                        localStorage.setItem(id, '1');
+                    } else {
+                        localStorage.removeItem(id);
+                    }
+                    render();
+                };
+                grid.appendChild(card);
+            });
+        });
+
+        document.getElementById('stat-p').innerText = Math.round((done/total)*100) + '%';
+        document.getElementById('stat-x').innerText = done * 500;
+    }
+
+    // Arka plan kalpleri
+    const bg = document.getElementById('bgHearts');
+    for(let i=0; i<25; i++) {
+        const h = document.createElement('div');
+        h.className = 'bg-heart';
+        h.innerHTML = '❤';
+        h.style.left = Math.random() * 100 + 'vw';
+        h.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        h.style.animationDelay = Math.random() * 10 + 's';
+        h.style.fontSize = (Math.random() * 20 + 10) + 'px';
+        bg.appendChild(h);
+    }
+
+    function resetAll() { if(confirm('Tüm ilerleme sıfırlansın mı Selin?')) { localStorage.clear(); render(); } }
+    render();
+</script>
+
+</body>
+</html>
+
